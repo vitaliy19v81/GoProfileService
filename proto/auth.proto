@@ -1,0 +1,26 @@
+
+syntax = "proto3";
+
+package auth;
+
+option go_package = "/auth_proto;authpb";
+
+// Сервис авторизации
+service AuthService {
+  // Проверка и валидация токена
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+}
+
+// Запрос для валидации токена
+message ValidateTokenRequest {
+  string token = 1; // JWT токен
+}
+
+// Ответ с результатом валидации токена
+message ValidateTokenResponse {
+  bool valid = 1;         // Указывает, действителен ли токен
+  string user_id = 2;     // ID пользователя (если токен валидный)
+  string role = 3;        // Роль пользователя (если токен валидный)
+  string error = 4;       // Сообщение об ошибке (если токен недействителен)
+}
+
