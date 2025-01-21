@@ -15,26 +15,14 @@ type Profile struct {
 	UserID         string                 `json:"user_id"`
 	FirstName      string                 `json:"first_name"`
 	LastName       string                 `json:"last_name"`
-	MiddleName     string                 `json:"middle_name,omitempty"`
-	Phone          string                 `json:"phone,omitempty"`
-	Address        string                 `json:"address,omitempty"`
-	Birthday       string                 `json:"birthday,omitempty"`
+	MiddleName     sql.NullString         `json:"middle_name,omitempty"`
+	Phone          sql.NullString         `json:"phone,omitempty"`
+	Address        sql.NullString         `json:"address,omitempty"`
+	Birthday       sql.NullTime           `json:"birthday,omitempty"`
 	AdditionalData map[string]interface{} `json:"additional_data,omitempty"`
 	CreatedAt      time.Time              `json:"created_at"`
 	UpdatedAt      time.Time              `json:"updated_at"`
 }
-
-//type ProfileService struct {
-//	ps.UnimplementedProfileServiceServer
-//	db *sql.DB
-//}
-//
-//func NewProfileService(db *sql.DB) *ProfileService {
-//	if db == nil {
-//		log.Fatal("Database connection is nil")
-//	}
-//	return &ProfileService{db: db}
-//}
 
 ///////////
 
@@ -86,6 +74,55 @@ func CreateProfile(db *sql.DB) gin.HandlerFunc {
 	}
 }
 
+func GetProfileByToken(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token := c.Query("token")
+		if token == "" {
+			log.Println(token)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Токен не указан"})
+			return
+		}
+
+		var profile Profile
+		query := `SELECT id, user_id, first_name, last_name, middle_name, phone, address, birthday, additional_data, created_at, updated_at
+                  FROM profiles WHERE token = $1`
+		err := db.QueryRow(query, token).Scan(
+			&profile.ID, &profile.UserID, &profile.FirstName, &profile.LastName, &profile.MiddleName,
+			&profile.Phone, &profile.Address, &profile.Birthday, &profile.AdditionalData,
+			&profile.CreatedAt, &profile.UpdatedAt)
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Профиль не найден"})
+			return
+		} else if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка получения профиля"})
+			return
+		}
+		c.JSON(http.StatusOK, profile)
+	}
+}
+
+func GetProfileByUserID(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.Param("user_id")
+
+		var profile Profile
+		query := `SELECT id, user_id, first_name, last_name, middle_name, phone, address, birthday, additional_data, created_at, updated_at
+                  FROM profiles WHERE user_id = $1`
+		err := db.QueryRow(query, userID).Scan(
+			&profile.ID, &profile.UserID, &profile.FirstName, &profile.LastName, &profile.MiddleName,
+			&profile.Phone, &profile.Address, &profile.Birthday, &profile.AdditionalData,
+			&profile.CreatedAt, &profile.UpdatedAt)
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Профиль не найден"})
+			return
+		} else if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка получения профиля"})
+			return
+		}
+		c.JSON(http.StatusOK, profile)
+	}
+}
+
 func GetProfile(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
@@ -107,6 +144,18 @@ func GetProfile(db *sql.DB) gin.HandlerFunc {
 		c.JSON(http.StatusOK, profile)
 	}
 } // c *gin.Context
+
+//type ProfileService struct {
+//	ps.UnimplementedProfileServiceServer
+//	db *sql.DB
+//}
+//
+//func NewProfileService(db *sql.DB) *ProfileService {
+//	if db == nil {
+//		log.Fatal("Database connection is nil")
+//	}
+//	return &ProfileService{db: db}
+//}
 
 ////////
 

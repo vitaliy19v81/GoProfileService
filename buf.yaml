@@ -1,0 +1,19 @@
+version: v1
+breaking:
+  use:
+    - FILE
+lint:
+  use:
+    - DEFAULT
+deps:
+  - ./googleapis
+  - ./grpc-gateway
+securityDefinitions:
+  bearerAuth:
+    type: apiKey
+    in: header
+    name: Authorization
+    description: Bearer token
+
+security:
+  - bearerAuth: []
