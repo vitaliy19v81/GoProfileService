@@ -1,5 +1,4 @@
 syntax = "proto3";
-
 package profile;
 
 option go_package = "/annotation_proto";
@@ -18,7 +17,7 @@ message Profile {
   string phone = 6;
   string address = 7;
   string birthday = 8;
-  map<string, string> additional_data = 9; // Дополнительные данные
+  map<string, string> additional_data = 9;
   string created_at = 10;
   string updated_at = 11;
 
@@ -86,6 +85,22 @@ service ProfileService {
       get: "/v1/profiles"
     };
   }
+
+  // Удаление профиля по id
+  rpc DeleteProfileByID(DeleteProfileByIDRequest) returns (DeleteProfileByIDResponse) {
+    option (google.api.http) = {
+      delete: "/v1/profiles/delete/id/{id}"
+    };
+  }
+
+  // Обновление профиля
+  rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse) {
+    option (google.api.http) = {
+      put: "/v1/profiles/update/id/{user_id}"
+      body: "*"
+    };
+  }
+
 }
 
 // Запрос для получения профиля через токен
@@ -148,6 +163,32 @@ message GetProfilesRequest {
 message GetProfilesResponse {
   repeated Profile profiles = 1; // Список профилей
   int32 totalRecords = 2;       // Общее количество записей
-//  int32 limit = 3;              // Лимит записей на странице
-//  int32 offset = 4;             // Смещение
+}
+
+// Запрос для удаления профиля
+message DeleteProfileByIDRequest {
+  string id = 1;
+}
+
+// Ответ для удаления профиля
+message DeleteProfileByIDResponse {
+  string message = 1;
+}
+
+// Запрос для обновление профиля
+message UpdateProfileRequest {
+  string user_id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string middle_name = 4;
+  string phone = 5;
+  string address = 6;
+  string birthday = 7;
+  map<string, string> additional_data = 8;
+}
+
+// Ответ для обновления профиля
+message UpdateProfileResponse {
+  bool success = 1;
+  string message = 2;
 }

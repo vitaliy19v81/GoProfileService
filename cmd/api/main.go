@@ -89,6 +89,7 @@ func main() {
 		profilesGroup.POST("/create", rProfile.CreateProfile(db))
 		profilesGroup.GET("/:id", rProfile.GetProfile(db))
 		profilesGroup.GET("/token", rProfile.GetProfileByToken(db))
+		profilesGroup.DELETE("/delete", rProfile.DeleteProfileHandler(db)) // TODO
 	}
 
 	//authClient := initAuthClient() // Инициализация gRPC-клиента для AuthService
@@ -100,6 +101,8 @@ func main() {
 		v1.GET("/profiles/id/:id", profileService.GetProfileByIDHTTP)              // Получение профиля по id
 		v1.POST("/profiles", profileService.CreateProfileHTTP)                     // Создание профиля
 		v1.GET("/profiles", profileService.GetProfilesHTTP)                        // Получение списка профилей
+		v1.DELETE("/profiles/delete/id/:id", profileService.DeleteProfileHTTP)
+		v1.PUT("/profiles/update/id/:user_id", profileService.UpdateProfileHTTP)
 	}
 	// gRPC маршруты
 	go func() {

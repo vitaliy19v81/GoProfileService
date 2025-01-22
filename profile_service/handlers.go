@@ -10,6 +10,20 @@ import (
 	"strconv"
 )
 
+type SuccessResponse struct {
+	Data         interface{} `json:"data"`
+	TotalRecords int         `json:"totalRecords"`
+	Limit        int         `json:"limit"`
+	Offset       int         `json:"offset"`
+}
+
+type UpdateProfileRequest struct {
+	UserID string `json:"user_id"` // UUID пользователя
+	Name   string `json:"name"`    // Новое имя пользователя
+	Email  string `json:"email"`   // Новый email
+	Phone  string `json:"phone"`   // Новый телефон
+}
+
 func (s *ProfileServiceServer) GetProfileByTokenHTTP(c *gin.Context) {
 	// Извлекаем токен из запроса
 	token := c.Query("token")
@@ -107,13 +121,6 @@ func (s *ProfileServiceServer) CreateProfileHTTP(c *gin.Context) {
 	})
 }
 
-type SuccessResponse struct {
-	Data         interface{} `json:"data"`
-	TotalRecords int         `json:"totalRecords"`
-	Limit        int         `json:"limit"`
-	Offset       int         `json:"offset"`
-}
-
 func (s *ProfileServiceServer) GetProfilesHTTP(c *gin.Context) {
 	limitStr := c.DefaultQuery("limit", "10")
 	offsetStr := c.DefaultQuery("offset", "0")
@@ -159,4 +166,61 @@ func (s *ProfileServiceServer) GetProfilesHTTP(c *gin.Context) {
 		Limit:        limit,
 		Offset:       offset,
 	})
+}
+
+func (s *ProfileServiceServer) UpdateProfileHTTP(c *gin.Context) {
+	var req profileProto.UpdateProfileRequest
+
+	// Извлечение user_id из параметров пути
+	userID := c.Param("user_id")
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
+		return
+	}
+
+	// Чтение тела запроса
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read request body"})
+		return
+	}
+
+	// Восстановление тела для возможного дальнейшего использования
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+
+	// Десериализация JSON в Protobuf
+	if err := protojson.Unmarshal(body, &req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	req.UserId = userID
+
+	// Вызов gRPC-метода
+	resp, err := s.UpdateProfile(c, &req) // c.Request.Context()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+func (s *ProfileServiceServer) DeleteProfileHTTP(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id is required"})
+		return
+	}
+
+	req := &profileProto.DeleteProfileByIDRequest{Id: id}
+
+	resp, err := s.DeleteProfileByID(c, req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	//c.JSON(http.StatusOK, gin.H{"message": "Profile deleted"})
+	c.JSON(http.StatusOK, gin.H{"message": resp.Message})
 }

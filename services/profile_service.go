@@ -11,17 +11,17 @@ import (
 )
 
 type Profile struct {
-	ID             string                 `json:"id"`
-	UserID         string                 `json:"user_id"`
-	FirstName      string                 `json:"first_name"`
-	LastName       string                 `json:"last_name"`
-	MiddleName     sql.NullString         `json:"middle_name,omitempty"`
-	Phone          sql.NullString         `json:"phone,omitempty"`
-	Address        sql.NullString         `json:"address,omitempty"`
-	Birthday       sql.NullTime           `json:"birthday,omitempty"`
-	AdditionalData map[string]interface{} `json:"additional_data,omitempty"`
-	CreatedAt      time.Time              `json:"created_at"`
-	UpdatedAt      time.Time              `json:"updated_at"`
+	ID             string           `json:"id"`
+	UserID         string           `json:"user_id"`
+	FirstName      string           `json:"first_name"`
+	LastName       string           `json:"last_name"`
+	MiddleName     sql.NullString   `json:"middle_name,omitempty"`
+	Phone          sql.NullString   `json:"phone,omitempty"`
+	Address        sql.NullString   `json:"address,omitempty"`
+	Birthday       sql.NullTime     `json:"birthday,omitempty"`
+	AdditionalData *json.RawMessage `json:"additional_data,omitempty"` // AdditionalData map[string]interface{} `json:"additional_data,omitempty"`
+	CreatedAt      time.Time        `json:"created_at"`
+	UpdatedAt      time.Time        `json:"updated_at"`
 }
 
 ///////////
@@ -144,6 +144,20 @@ func GetProfile(db *sql.DB) gin.HandlerFunc {
 		c.JSON(http.StatusOK, profile)
 	}
 } // c *gin.Context
+
+func DeleteProfileHandler(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		log.Println(id)
+		_, err := db.Exec("DELETE FROM users WHERE id = $1", id)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "User deleted"})
+	}
+}
 
 //type ProfileService struct {
 //	ps.UnimplementedProfileServiceServer

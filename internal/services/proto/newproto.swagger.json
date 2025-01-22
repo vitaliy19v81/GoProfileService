@@ -84,6 +84,37 @@
         ]
       }
     },
+    "/v1/profiles/delete/id/{id}": {
+      "delete": {
+        "summary": "Удаление профиля по id",
+        "operationId": "ProfileService_DeleteProfileByID",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/profileDeleteProfileByIDResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ProfileService"
+        ]
+      }
+    },
     "/v1/profiles/id/{id}": {
       "get": {
         "summary": "Получение профиля по id",
@@ -152,6 +183,45 @@
         ]
       }
     },
+    "/v1/profiles/update/id/{userId}": {
+      "put": {
+        "summary": "Обновление профиля",
+        "operationId": "ProfileService_UpdateProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/profileUpdateProfileResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ProfileServiceUpdateProfileBody"
+            }
+          }
+        ],
+        "tags": [
+          "ProfileService"
+        ]
+      }
+    },
     "/v1/profiles/userid/{userId}": {
       "get": {
         "summary": "Получение профиля по user_id",
@@ -185,6 +255,36 @@
     }
   },
   "definitions": {
+    "ProfileServiceUpdateProfileBody": {
+      "type": "object",
+      "properties": {
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "middleName": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "birthday": {
+          "type": "string"
+        },
+        "additionalData": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "Запрос для обновление профиля"
+    },
     "profileCreateProfileRequest": {
       "type": "object",
       "properties": {
@@ -232,6 +332,15 @@
         }
       },
       "title": "Ответ для создания профиля"
+    },
+    "profileDeleteProfileByIDResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      },
+      "title": "Ответ для удаления профиля"
     },
     "profileGetProfileByTokenResponse": {
       "type": "object",
@@ -313,8 +422,7 @@
           "type": "object",
           "additionalProperties": {
             "type": "string"
-          },
-          "title": "Дополнительные данные"
+          }
         },
         "createdAt": {
           "type": "string"
@@ -324,6 +432,18 @@
         }
       },
       "title": "Сообщение профиля"
+    },
+    "profileUpdateProfileResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "title": "Ответ для обновления профиля"
     },
     "protobufAny": {
       "type": "object",
