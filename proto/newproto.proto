@@ -96,7 +96,7 @@ service ProfileService {
   // Обновление профиля
   rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse) {
     option (google.api.http) = {
-      put: "/v1/profiles/update/id/{user_id}"
+      put: "/v1/profiles/update"
       body: "*"
     };
   }

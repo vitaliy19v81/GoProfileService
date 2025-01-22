@@ -171,12 +171,12 @@ func (s *ProfileServiceServer) GetProfilesHTTP(c *gin.Context) {
 func (s *ProfileServiceServer) UpdateProfileHTTP(c *gin.Context) {
 	var req profileProto.UpdateProfileRequest
 
-	// Извлечение user_id из параметров пути
-	userID := c.Param("user_id")
-	if userID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
-		return
-	}
+	//// Извлечение user_id из параметров пути
+	//userID := c.Param("user_id")
+	//if userID == "" {
+	//	c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
+	//	return
+	//}
 
 	// Чтение тела запроса
 	body, err := io.ReadAll(c.Request.Body)
@@ -194,7 +194,7 @@ func (s *ProfileServiceServer) UpdateProfileHTTP(c *gin.Context) {
 		return
 	}
 
-	req.UserId = userID
+	//req.UserId = userID // Если использовать, то после Десериализация
 
 	// Вызов gRPC-метода
 	resp, err := s.UpdateProfile(c, &req) // c.Request.Context()

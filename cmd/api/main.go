@@ -102,7 +102,7 @@ func main() {
 		v1.POST("/profiles", profileService.CreateProfileHTTP)                     // Создание профиля
 		v1.GET("/profiles", profileService.GetProfilesHTTP)                        // Получение списка профилей
 		v1.DELETE("/profiles/delete/id/:id", profileService.DeleteProfileHTTP)
-		v1.PUT("/profiles/update/id/:user_id", profileService.UpdateProfileHTTP)
+		v1.PUT("/profiles/update", profileService.UpdateProfileHTTP)
 	}
 	// gRPC маршруты
 	go func() {

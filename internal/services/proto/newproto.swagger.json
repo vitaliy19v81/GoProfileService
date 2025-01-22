@@ -183,7 +183,7 @@
         ]
       }
     },
-    "/v1/profiles/update/id/{userId}": {
+    "/v1/profiles/update": {
       "put": {
         "summary": "Обновление профиля",
         "operationId": "ProfileService_UpdateProfile",
@@ -203,17 +203,11 @@
         },
         "parameters": [
           {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/ProfileServiceUpdateProfileBody"
+              "$ref": "#/definitions/profileUpdateProfileRequest"
             }
           }
         ],
@@ -255,36 +249,6 @@
     }
   },
   "definitions": {
-    "ProfileServiceUpdateProfileBody": {
-      "type": "object",
-      "properties": {
-        "firstName": {
-          "type": "string"
-        },
-        "lastName": {
-          "type": "string"
-        },
-        "middleName": {
-          "type": "string"
-        },
-        "phone": {
-          "type": "string"
-        },
-        "address": {
-          "type": "string"
-        },
-        "birthday": {
-          "type": "string"
-        },
-        "additionalData": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        }
-      },
-      "title": "Запрос для обновление профиля"
-    },
     "profileCreateProfileRequest": {
       "type": "object",
       "properties": {
@@ -432,6 +396,39 @@
         }
       },
       "title": "Сообщение профиля"
+    },
+    "profileUpdateProfileRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "middleName": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "birthday": {
+          "type": "string"
+        },
+        "additionalData": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "Запрос для обновление профиля"
     },
     "profileUpdateProfileResponse": {
       "type": "object",
