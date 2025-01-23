@@ -74,7 +74,7 @@ service ProfileService {
   // Создание профиля
   rpc CreateProfile(CreateProfileRequest) returns (CreateProfileResponse) {
     option (google.api.http) = {
-      post: "/v1/profiles"
+      post: "/v1/profiles/create"
       body: "*"
     };
   }
@@ -82,14 +82,14 @@ service ProfileService {
   // Получение списка профилей
   rpc GetProfiles(GetProfilesRequest) returns (GetProfilesResponse) {
     option (google.api.http) = {
-      get: "/v1/profiles"
+      get: "/v1/profiles/list"
     };
   }
 
   // Удаление профиля по id
-  rpc DeleteProfileByID(DeleteProfileByIDRequest) returns (DeleteProfileByIDResponse) {
+  rpc DeleteProfileByID(DeleteProfileByUserIDRequest) returns (DeleteProfileByUserIDResponse) {
     option (google.api.http) = {
-      delete: "/v1/profiles/delete/id/{id}"
+      delete: "/v1/profiles/delete/{user_id}"
     };
   }
 
@@ -98,6 +98,20 @@ service ProfileService {
     option (google.api.http) = {
       put: "/v1/profiles/update"
       body: "*"
+    };
+  }
+
+  // Проверка существование пользователя
+  rpc ProfileExists(ProfileExistsRequest) returns (ProfileExistsResponse) {
+    option (google.api.http) = {
+      get: "/v1/profiles/exists/{user_id}"
+    };
+  }
+
+  // RPC для получения отфильтрованных профилей
+  rpc GetFilteredProfiles(GetFilteredProfilesRequest) returns (GetFilteredProfilesResponse) {
+    option (google.api.http) = {
+      get: "/v1/profiles/filtered"
     };
   }
 
@@ -166,12 +180,12 @@ message GetProfilesResponse {
 }
 
 // Запрос для удаления профиля
-message DeleteProfileByIDRequest {
-  string id = 1;
+message DeleteProfileByUserIDRequest {
+  string user_id = 1;
 }
 
 // Ответ для удаления профиля
-message DeleteProfileByIDResponse {
+message DeleteProfileByUserIDResponse {
   string message = 1;
 }
 
@@ -191,4 +205,27 @@ message UpdateProfileRequest {
 message UpdateProfileResponse {
   bool success = 1;
   string message = 2;
+}
+
+// Запрос для проверки существования профиля
+message ProfileExistsRequest {
+  string user_id = 1; // UUID пользователя
+}
+
+// Ответ для проверки существования профиля
+message ProfileExistsResponse {
+  bool exists = 1; // Указывает, существует ли профиль
+}
+
+// Запрос для фильтрации профилей
+message GetFilteredProfilesRequest {
+  string first_name = 1; // Фильтр по имени
+  string phone = 2;      // Фильтр по телефону
+  int32 limit = 3;       // Лимит записей
+  int32 offset = 4;      // Смещение записей
+}
+
+// Ответ с отфильтрованными профилями
+message GetFilteredProfilesResponse {
+  repeated Profile profiles = 1; // Список профилей
 }

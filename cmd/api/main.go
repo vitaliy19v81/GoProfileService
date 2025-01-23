@@ -89,7 +89,8 @@ func main() {
 		profilesGroup.POST("/create", rProfile.CreateProfile(db))
 		profilesGroup.GET("/:id", rProfile.GetProfile(db))
 		profilesGroup.GET("/token", rProfile.GetProfileByToken(db))
-		profilesGroup.DELETE("/delete", rProfile.DeleteProfileHandler(db)) // TODO
+		profilesGroup.DELETE("/delete", rProfile.DeleteProfileHandler(db))
+		profilesGroup.GET("/list", rProfile.GetProfilesAPI(db))
 	}
 
 	//authClient := initAuthClient() // Инициализация gRPC-клиента для AuthService
@@ -99,10 +100,12 @@ func main() {
 		v1.GET("/profiles/token", profileService.GetProfileByTokenHTTP)            // Получение профиля по токену
 		v1.GET("/profiles/userid/:user_id", profileService.GetProfileByUserIDHTTP) // Получение профиля по user_id
 		v1.GET("/profiles/id/:id", profileService.GetProfileByIDHTTP)              // Получение профиля по id
-		v1.POST("/profiles", profileService.CreateProfileHTTP)                     // Создание профиля
-		v1.GET("/profiles", profileService.GetProfilesHTTP)                        // Получение списка профилей
-		v1.DELETE("/profiles/delete/id/:id", profileService.DeleteProfileHTTP)
-		v1.PUT("/profiles/update", profileService.UpdateProfileHTTP)
+		v1.DELETE("/profiles/delete/:user_id", profileService.DeleteProfileHTTP)   // удаление профиля по user_id
+		v1.PUT("/profiles/update", profileService.UpdateProfileHTTP)               //
+		v1.GET("/profiles/exists/:user_id", profileService.ProfileExistsHTTP)      // проверка существования пользователя
+		v1.GET("/profiles/filtered", profileService.GetFilteredProfilesHTTP)       //
+		v1.POST("/profiles/create", profileService.CreateProfileHTTP)              // Создание профиля
+		v1.GET("/profiles/list", profileService.GetProfilesHTTP)                   // Получение списка профилей
 	}
 	// gRPC маршруты
 	go func() {

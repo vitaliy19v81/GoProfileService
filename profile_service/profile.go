@@ -234,14 +234,14 @@ func (s *ProfileServiceServer) GetProfiles(ctx context.Context, req *profileProt
 	}, nil
 }
 
-func (s *ProfileServiceServer) DeleteProfileByID(ctx context.Context, req *profileProto.DeleteProfileByIDRequest) (*profileProto.DeleteProfileByIDResponse, error) {
+func (s *ProfileServiceServer) DeleteProfileByID(ctx context.Context, req *profileProto.DeleteProfileByUserIDRequest) (*profileProto.DeleteProfileByUserIDResponse, error) {
 
-	_, err := s.DB.ExecContext(ctx, "DELETE FROM profiles WHERE id = $1", req.Id)
+	_, err := s.DB.ExecContext(ctx, "DELETE FROM profiles WHERE id = $1", req.UserId)
 	if err != nil {
 		return nil, err
 	}
 
-	return &profileProto.DeleteProfileByIDResponse{
+	return &profileProto.DeleteProfileByUserIDResponse{
 		Message: "Profile deleted",
 	}, nil
 }
@@ -271,6 +271,43 @@ func (s *ProfileServiceServer) UpdateProfile(ctx context.Context, req *profilePr
 	}
 
 	return &profileProto.UpdateProfileResponse{Message: "Profile updated successfully"}, nil
+}
+
+func (s *ProfileServiceServer) ProfileExists(ctx context.Context, req *profileProto.ProfileExistsRequest) (*profileProto.ProfileExistsResponse, error) {
+	query := "SELECT EXISTS(SELECT 1 FROM profiles WHERE user_id = $1)"
+	var exists bool
+	err := s.DB.QueryRowContext(ctx, query, req.UserId).Scan(&exists)
+	if err != nil {
+		return nil, fmt.Errorf("database error: %v", err)
+	}
+
+	return &profileProto.ProfileExistsResponse{Exists: exists}, nil
+}
+
+func (s *ProfileServiceServer) GetFilteredProfiles(ctx context.Context, req *profileProto.GetFilteredProfilesRequest) (*profileProto.GetFilteredProfilesResponse, error) {
+	query := `
+		SELECT id, user_id, first_name, last_name, middle_name, phone, address, birthday, created_at, updated_at
+		FROM profiles WHERE ($1::text IS NULL OR first_name ILIKE '%' || $1 || '%') 
+			AND ($2::text IS NULL OR phone = $2)
+		ORDER BY created_at DESC LIMIT $3 OFFSET $4
+	`
+	rows, err := s.DB.QueryContext(ctx, query, req.FirstName, req.Phone, req.Limit, req.Offset)
+	if err != nil {
+		return nil, fmt.Errorf("database query error: %v", err)
+	}
+	defer rows.Close()
+
+	var profiles []*profileProto.Profile
+	for rows.Next() {
+		var profile p.Profile
+		err := rows.Scan(&profile.ID, &profile.UserID, &profile.FirstName, &profile.LastName, &profile.MiddleName, &profile.Phone, &profile.Address, &profile.Birthday, &profile.CreatedAt, &profile.UpdatedAt)
+		if err != nil {
+			return nil, fmt.Errorf("row scan error: %v", err)
+		}
+		profiles = append(profiles, convertProfileToProto(profile))
+	}
+
+	return &profileProto.GetFilteredProfilesResponse{Profiles: profiles}, nil
 }
 
 // nullStringToString конвертирует sql.NullString в обычную строку.

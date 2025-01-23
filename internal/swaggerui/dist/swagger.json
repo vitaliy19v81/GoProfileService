@@ -16,42 +16,7 @@
     "application/json"
   ],
   "paths": {
-    "/v1/profiles": {
-      "get": {
-        "summary": "Получение списка профилей",
-        "operationId": "ProfileService_GetProfiles",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/profileGetProfilesResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "ProfileService"
-        ]
-      },
+    "/v1/profiles/create": {
       "post": {
         "summary": "Создание профиля",
         "operationId": "ProfileService_CreateProfile",
@@ -84,7 +49,7 @@
         ]
       }
     },
-    "/v1/profiles/delete/id/{id}": {
+    "/v1/profiles/delete/{userId}": {
       "delete": {
         "summary": "Удаление профиля по id",
         "operationId": "ProfileService_DeleteProfileByID",
@@ -92,7 +57,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/profileDeleteProfileByIDResponse"
+              "$ref": "#/definitions/profileDeleteProfileByUserIDResponse"
             }
           },
           "default": {
@@ -104,10 +69,97 @@
         },
         "parameters": [
           {
-            "name": "id",
+            "name": "userId",
             "in": "path",
             "required": true,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "ProfileService"
+        ]
+      }
+    },
+    "/v1/profiles/exists/{userId}": {
+      "get": {
+        "summary": "Проверка существование пользователя",
+        "operationId": "ProfileService_ProfileExists",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/profileProfileExistsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "description": "UUID пользователя",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ProfileService"
+        ]
+      }
+    },
+    "/v1/profiles/filtered": {
+      "get": {
+        "summary": "RPC для получения отфильтрованных профилей",
+        "operationId": "ProfileService_GetFilteredProfiles",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/profileGetFilteredProfilesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "firstName",
+            "description": "Фильтр по имени",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "phone",
+            "description": "Фильтр по телефону",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "description": "Лимит записей",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "offset",
+            "description": "Смещение записей",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
           }
         ],
         "tags": [
@@ -138,6 +190,43 @@
             "name": "id",
             "in": "path",
             "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ProfileService"
+        ]
+      }
+    },
+    "/v1/profiles/list": {
+      "get": {
+        "summary": "Получение списка профилей",
+        "operationId": "ProfileService_GetProfiles",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/profileGetProfilesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -297,7 +386,7 @@
       },
       "title": "Ответ для создания профиля"
     },
-    "profileDeleteProfileByIDResponse": {
+    "profileDeleteProfileByUserIDResponse": {
       "type": "object",
       "properties": {
         "message": {
@@ -305,6 +394,20 @@
         }
       },
       "title": "Ответ для удаления профиля"
+    },
+    "profileGetFilteredProfilesResponse": {
+      "type": "object",
+      "properties": {
+        "profiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/profileProfile"
+          },
+          "title": "Список профилей"
+        }
+      },
+      "title": "Ответ с отфильтрованными профилями"
     },
     "profileGetProfileByTokenResponse": {
       "type": "object",
@@ -396,6 +499,16 @@
         }
       },
       "title": "Сообщение профиля"
+    },
+    "profileProfileExistsResponse": {
+      "type": "object",
+      "properties": {
+        "exists": {
+          "type": "boolean",
+          "title": "Указывает, существует ли профиль"
+        }
+      },
+      "title": "Ответ для проверки существования профиля"
     },
     "profileUpdateProfileRequest": {
       "type": "object",

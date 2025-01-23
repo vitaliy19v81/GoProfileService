@@ -122,8 +122,9 @@ func (s *ProfileServiceServer) CreateProfileHTTP(c *gin.Context) {
 }
 
 func (s *ProfileServiceServer) GetProfilesHTTP(c *gin.Context) {
-	limitStr := c.DefaultQuery("limit", "10")
-	offsetStr := c.DefaultQuery("offset", "0")
+
+	limitStr := c.DefaultQuery("length", "10") // "limit"
+	offsetStr := c.DefaultQuery("start", "0")  // "offset"
 
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil || limit <= 0 {
@@ -158,6 +159,7 @@ func (s *ProfileServiceServer) GetProfilesHTTP(c *gin.Context) {
 			"created_at":  profile.CreatedAt,
 			"updated_at":  profile.UpdatedAt,
 		}
+
 	}
 
 	c.JSON(http.StatusOK, SuccessResponse{
@@ -207,13 +209,13 @@ func (s *ProfileServiceServer) UpdateProfileHTTP(c *gin.Context) {
 }
 
 func (s *ProfileServiceServer) DeleteProfileHTTP(c *gin.Context) {
-	id := c.Param("id")
-	if id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "id is required"})
+	userid := c.Param("user_id")
+	if userid == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
 		return
 	}
 
-	req := &profileProto.DeleteProfileByIDRequest{Id: id}
+	req := &profileProto.DeleteProfileByUserIDRequest{UserId: userid}
 
 	resp, err := s.DeleteProfileByID(c, req)
 	if err != nil {
@@ -223,4 +225,53 @@ func (s *ProfileServiceServer) DeleteProfileHTTP(c *gin.Context) {
 
 	//c.JSON(http.StatusOK, gin.H{"message": "Profile deleted"})
 	c.JSON(http.StatusOK, gin.H{"message": resp.Message})
+}
+
+func (s *ProfileServiceServer) ProfileExistsHTTP(c *gin.Context) {
+	userID := c.Param("user_id")
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
+		return
+	}
+
+	req := &profileProto.ProfileExistsRequest{UserId: userID}
+
+	resp, err := s.ProfileExists(c, req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"profile": resp.Exists,
+	})
+}
+
+func (s *ProfileServiceServer) GetFilteredProfilesHTTP(c *gin.Context) {
+	req := &profileProto.GetFilteredProfilesRequest{
+		FirstName: c.Query("first_name"),
+		Phone:     c.Query("phone"),
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid limit"})
+		return
+	}
+	req.Limit = int32(limit)
+
+	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid offset"})
+		return
+	}
+	req.Offset = int32(offset)
+
+	resp, err := s.GetFilteredProfiles(c, req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
 }

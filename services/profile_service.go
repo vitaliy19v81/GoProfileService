@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -156,6 +157,79 @@ func DeleteProfileHandler(db *sql.DB) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, gin.H{"message": "User deleted"})
+	}
+}
+
+type SuccessResponse struct {
+	Data         interface{} `json:"data"`
+	TotalRecords int         `json:"totalRecords"`
+	Limit        int         `json:"limit"`
+	Offset       int         `json:"offset"`
+}
+
+func GetProfilesAPI(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		limitStr := c.DefaultQuery("length", "10") // "limit"
+		offsetStr := c.DefaultQuery("start", "0")  // "offset"
+
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil || limit <= 0 {
+			limit = 10
+		}
+		offset, err := strconv.Atoi(offsetStr)
+		if err != nil || offset < 0 {
+			offset = 0
+		}
+
+		var profiles []Profile
+		var totalRecords int
+
+		// Считаем общее количество записей
+		err = db.QueryRowContext(c, `SELECT COUNT(*) FROM profiles`).Scan(&totalRecords)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Запрос с лимитом и смещением
+		rows, err := db.Query(`
+		SELECT id, user_id, first_name, last_name, middle_name, phone, address, birthday, created_at, updated_at
+		FROM profiles LIMIT $1 OFFSET $2`, limit, offset)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		defer rows.Close()
+
+		// Обработка строк
+		for rows.Next() {
+			var profile Profile
+			err := rows.Scan(
+				&profile.ID,
+				&profile.UserID,
+				&profile.FirstName,
+				&profile.LastName,
+				&profile.MiddleName,
+				&profile.Phone,
+				&profile.Address,
+				&profile.Birthday,
+				&profile.CreatedAt,
+				&profile.UpdatedAt,
+			)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			profiles = append(profiles, profile)
+		}
+
+		c.JSON(http.StatusOK, SuccessResponse{
+			Data:         profiles,
+			TotalRecords: totalRecords,
+			Limit:        limit,
+			Offset:       offset,
+		})
 	}
 }
 

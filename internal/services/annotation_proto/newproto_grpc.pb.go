@@ -19,13 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ProfileService_GetProfileByToken_FullMethodName  = "/profile.ProfileService/GetProfileByToken"
-	ProfileService_GetProfile_FullMethodName         = "/profile.ProfileService/GetProfile"
-	ProfileService_GetProfileByUserID_FullMethodName = "/profile.ProfileService/GetProfileByUserID"
-	ProfileService_CreateProfile_FullMethodName      = "/profile.ProfileService/CreateProfile"
-	ProfileService_GetProfiles_FullMethodName        = "/profile.ProfileService/GetProfiles"
-	ProfileService_DeleteProfileByID_FullMethodName  = "/profile.ProfileService/DeleteProfileByID"
-	ProfileService_UpdateProfile_FullMethodName      = "/profile.ProfileService/UpdateProfile"
+	ProfileService_GetProfileByToken_FullMethodName   = "/profile.ProfileService/GetProfileByToken"
+	ProfileService_GetProfile_FullMethodName          = "/profile.ProfileService/GetProfile"
+	ProfileService_GetProfileByUserID_FullMethodName  = "/profile.ProfileService/GetProfileByUserID"
+	ProfileService_CreateProfile_FullMethodName       = "/profile.ProfileService/CreateProfile"
+	ProfileService_GetProfiles_FullMethodName         = "/profile.ProfileService/GetProfiles"
+	ProfileService_DeleteProfileByID_FullMethodName   = "/profile.ProfileService/DeleteProfileByID"
+	ProfileService_UpdateProfile_FullMethodName       = "/profile.ProfileService/UpdateProfile"
+	ProfileService_ProfileExists_FullMethodName       = "/profile.ProfileService/ProfileExists"
+	ProfileService_GetFilteredProfiles_FullMethodName = "/profile.ProfileService/GetFilteredProfiles"
 )
 
 // ProfileServiceClient is the client API for ProfileService service.
@@ -45,9 +47,13 @@ type ProfileServiceClient interface {
 	// Получение списка профилей
 	GetProfiles(ctx context.Context, in *GetProfilesRequest, opts ...grpc.CallOption) (*GetProfilesResponse, error)
 	// Удаление профиля по id
-	DeleteProfileByID(ctx context.Context, in *DeleteProfileByIDRequest, opts ...grpc.CallOption) (*DeleteProfileByIDResponse, error)
+	DeleteProfileByID(ctx context.Context, in *DeleteProfileByUserIDRequest, opts ...grpc.CallOption) (*DeleteProfileByUserIDResponse, error)
 	// Обновление профиля
 	UpdateProfile(ctx context.Context, in *UpdateProfileRequest, opts ...grpc.CallOption) (*UpdateProfileResponse, error)
+	// Проверка существование пользователя
+	ProfileExists(ctx context.Context, in *ProfileExistsRequest, opts ...grpc.CallOption) (*ProfileExistsResponse, error)
+	// RPC для получения отфильтрованных профилей
+	GetFilteredProfiles(ctx context.Context, in *GetFilteredProfilesRequest, opts ...grpc.CallOption) (*GetFilteredProfilesResponse, error)
 }
 
 type profileServiceClient struct {
@@ -108,9 +114,9 @@ func (c *profileServiceClient) GetProfiles(ctx context.Context, in *GetProfilesR
 	return out, nil
 }
 
-func (c *profileServiceClient) DeleteProfileByID(ctx context.Context, in *DeleteProfileByIDRequest, opts ...grpc.CallOption) (*DeleteProfileByIDResponse, error) {
+func (c *profileServiceClient) DeleteProfileByID(ctx context.Context, in *DeleteProfileByUserIDRequest, opts ...grpc.CallOption) (*DeleteProfileByUserIDResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteProfileByIDResponse)
+	out := new(DeleteProfileByUserIDResponse)
 	err := c.cc.Invoke(ctx, ProfileService_DeleteProfileByID_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -122,6 +128,26 @@ func (c *profileServiceClient) UpdateProfile(ctx context.Context, in *UpdateProf
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateProfileResponse)
 	err := c.cc.Invoke(ctx, ProfileService_UpdateProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profileServiceClient) ProfileExists(ctx context.Context, in *ProfileExistsRequest, opts ...grpc.CallOption) (*ProfileExistsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ProfileExistsResponse)
+	err := c.cc.Invoke(ctx, ProfileService_ProfileExists_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profileServiceClient) GetFilteredProfiles(ctx context.Context, in *GetFilteredProfilesRequest, opts ...grpc.CallOption) (*GetFilteredProfilesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFilteredProfilesResponse)
+	err := c.cc.Invoke(ctx, ProfileService_GetFilteredProfiles_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -145,9 +171,13 @@ type ProfileServiceServer interface {
 	// Получение списка профилей
 	GetProfiles(context.Context, *GetProfilesRequest) (*GetProfilesResponse, error)
 	// Удаление профиля по id
-	DeleteProfileByID(context.Context, *DeleteProfileByIDRequest) (*DeleteProfileByIDResponse, error)
+	DeleteProfileByID(context.Context, *DeleteProfileByUserIDRequest) (*DeleteProfileByUserIDResponse, error)
 	// Обновление профиля
 	UpdateProfile(context.Context, *UpdateProfileRequest) (*UpdateProfileResponse, error)
+	// Проверка существование пользователя
+	ProfileExists(context.Context, *ProfileExistsRequest) (*ProfileExistsResponse, error)
+	// RPC для получения отфильтрованных профилей
+	GetFilteredProfiles(context.Context, *GetFilteredProfilesRequest) (*GetFilteredProfilesResponse, error)
 	mustEmbedUnimplementedProfileServiceServer()
 }
 
@@ -173,11 +203,17 @@ func (UnimplementedProfileServiceServer) CreateProfile(context.Context, *CreateP
 func (UnimplementedProfileServiceServer) GetProfiles(context.Context, *GetProfilesRequest) (*GetProfilesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProfiles not implemented")
 }
-func (UnimplementedProfileServiceServer) DeleteProfileByID(context.Context, *DeleteProfileByIDRequest) (*DeleteProfileByIDResponse, error) {
+func (UnimplementedProfileServiceServer) DeleteProfileByID(context.Context, *DeleteProfileByUserIDRequest) (*DeleteProfileByUserIDResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteProfileByID not implemented")
 }
 func (UnimplementedProfileServiceServer) UpdateProfile(context.Context, *UpdateProfileRequest) (*UpdateProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateProfile not implemented")
+}
+func (UnimplementedProfileServiceServer) ProfileExists(context.Context, *ProfileExistsRequest) (*ProfileExistsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ProfileExists not implemented")
+}
+func (UnimplementedProfileServiceServer) GetFilteredProfiles(context.Context, *GetFilteredProfilesRequest) (*GetFilteredProfilesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFilteredProfiles not implemented")
 }
 func (UnimplementedProfileServiceServer) mustEmbedUnimplementedProfileServiceServer() {}
 func (UnimplementedProfileServiceServer) testEmbeddedByValue()                        {}
@@ -291,7 +327,7 @@ func _ProfileService_GetProfiles_Handler(srv interface{}, ctx context.Context, d
 }
 
 func _ProfileService_DeleteProfileByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteProfileByIDRequest)
+	in := new(DeleteProfileByUserIDRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -303,7 +339,7 @@ func _ProfileService_DeleteProfileByID_Handler(srv interface{}, ctx context.Cont
 		FullMethod: ProfileService_DeleteProfileByID_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProfileServiceServer).DeleteProfileByID(ctx, req.(*DeleteProfileByIDRequest))
+		return srv.(ProfileServiceServer).DeleteProfileByID(ctx, req.(*DeleteProfileByUserIDRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -322,6 +358,42 @@ func _ProfileService_UpdateProfile_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProfileServiceServer).UpdateProfile(ctx, req.(*UpdateProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProfileService_ProfileExists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProfileExistsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServiceServer).ProfileExists(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProfileService_ProfileExists_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServiceServer).ProfileExists(ctx, req.(*ProfileExistsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProfileService_GetFilteredProfiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFilteredProfilesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServiceServer).GetFilteredProfiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProfileService_GetFilteredProfiles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServiceServer).GetFilteredProfiles(ctx, req.(*GetFilteredProfilesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -360,6 +432,14 @@ var ProfileService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateProfile",
 			Handler:    _ProfileService_UpdateProfile_Handler,
+		},
+		{
+			MethodName: "ProfileExists",
+			Handler:    _ProfileService_ProfileExists_Handler,
+		},
+		{
+			MethodName: "GetFilteredProfiles",
+			Handler:    _ProfileService_GetFilteredProfiles_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
