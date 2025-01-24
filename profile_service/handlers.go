@@ -243,7 +243,7 @@ func (s *ProfileServiceServer) ProfileExistsHTTP(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"profile": resp.Exists,
+		"exists": resp.Exists,
 	})
 }
 
